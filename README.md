@@ -15,7 +15,6 @@ The backend is a FastAPI service with authentication and a RAG API, using **Chro
     - `/auth` endpoints (`/signup`, `/signin`) using JWT-based auth
     - `/rag` endpoints for document ingestion and question answering :contentReference[oaicite:1]{index=1}
   - PostgreSQL for application data (`db/init/*.sql` for initial schema)
-  - High test coverage with `pytest` and `coverage.xml` reports in `backend/reports/ci/` :contentReference[oaicite:2]{index=2}
 
 - **RAG (Retrieval-Augmented Generation)**
   - **Embeddings** via Ollama’s `/api/embeddings` endpoint  
@@ -30,7 +29,6 @@ The backend is a FastAPI service with authentication and a RAG API, using **Chro
   - Screens:
     - `HomeScreen.tsx`: calls the RAG backend and displays answers/chunks
     - `SignInScreen.tsx` / `SignUpScreen.tsx`: simple auth flow
-  - Jest tests for screens, components, and context (Auth, SettingsBar, etc.) :contentReference[oaicite:4]{index=4}
 
 - **DevOps**
   - Dockerfiles for backend and frontend
@@ -73,7 +71,7 @@ The backend is a FastAPI service with authentication and a RAG API, using **Chro
 
 ### 1. Prerequisites
 - [Docker Compose](https://docs.docker.com/compose/)
-- [Expo Go](https://expo.dev/go) (for Android/iOS testing)
+- [Expo Go](https://expo.dev/go)
 
 ### 2. Build and start all services:
 
