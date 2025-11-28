@@ -1,5 +1,9 @@
 # [RAG Container Template](https://github.com/europanite/rag_container_template "RAG Container Template")
 
+[![CI](https://github.com/europanite/rag_container_template/actions/workflows/ci.yml/badge.svg)](https://github.com/europanite/rag_container_template/actions/workflows/ci.yml)
+[![CodeQL Advanced](https://github.com/europanite/rag_container_template/actions/workflows/codeql.yml/badge.svg)](https://github.com/europanite/rag_container_template/actions/workflows/codeql.yml)
+[![pages-build-deployment](https://github.com/europanite/rag_container_template/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/europanite/rag_container_template/actions/workflows/pages/pages-build-deployment)
+
 !["UI"](./assets/images/frontend.png)
 
 This repository is a full-stack sandbox for building a **local Retrieval-Augmented Generation (RAG)** system.  
