@@ -10,29 +10,21 @@ The backend is a FastAPI service with authentication and a RAG API, using **Chro
 ## Features
 
 - **Backend**
-  - FastAPI application (`backend/app`) with:
-    - `/health` endpoint for basic health checks
-    - `/auth` endpoints (`/signup`, `/signin`) using JWT-based auth
-    - `/rag` endpoints for document ingestion and question answering :contentReference[oaicite:1]{index=1}
-  - PostgreSQL for application data (`db/init/*.sql` for initial schema)
-
-- **RAG (Retrieval-Augmented Generation)**
-  - **Embeddings** via Ollama’s `/api/embeddings` endpoint  
-    - Default model: `mxbai-embed-large`
-  - **Vector store** using ChromaDB `PersistentClient` stored under `backend/app/chroma_db/`
-  - **Chat / Answer generation** via Ollama’s `/api/chat` endpoint  
-    - Default model: `llama3`
-  - Simple character-based **chunking with overlap** and metadata (source, doc_id, chunk_index) in `rag_store.py` :contentReference[oaicite:3]{index=3}
+  - FastAPI
 
 - **Frontend**
-  - Expo / React Native app under `frontend/app`
-  - Screens:
-    - `HomeScreen.tsx`: calls the RAG backend and displays answers/chunks
-    - `SignInScreen.tsx` / `SignUpScreen.tsx`: simple auth flow
+  - Expo / React-Native
+
+- **DataBase**
+  - PostgreSQL
+
+- **RAG (Retrieval-Augmented Generation)**
+  - **Embeddings** with Ollama
+  - **Vector store** with ChromaDB
+  - **Chat / Answer generation** 
 
 - **DevOps**
-  - Dockerfiles for backend and frontend
-  - `docker-compose.yml` to bring up db, backend, and frontend together
+  - **Docker Compose**
   - GitHub Actions workflows
 
 ---
