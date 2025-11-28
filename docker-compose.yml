@@ -33,6 +33,7 @@ services:
       DB_USER: ${DB_USER}
       DB_PASS: ${DB_PASS}
       BACKEND_PORT: ${BACKEND_PORT}
+      OLLAMA_BASE_URL: http://ollama:11434
     volumes:
       - ./backend/app:/app
     command: uvicorn main:app --host 0.0.0.0 --port ${BACKEND_PORT} --reload
@@ -68,5 +69,20 @@ services:
         npx expo start
       "
     restart: unless-stopped
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama:/root/.ollama
+    restart: unless-stopped
+    entrypoint: ["/bin/bash", "-c", "\
+      ollama serve & \
+      sleep 5 && \
+      ollama pull mxbai-embed-large && \
+      ollama pull llama3 && \
+      wait"]
 volumes:
   db_data:
+  ollama:

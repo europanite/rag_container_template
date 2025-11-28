@@ -1,6 +1,6 @@
-title: "standard_react_fastapi_environment"
-description: "a full-stack development environment"
-baseurl: "/standard_react_fastapi_environment"
+title: "rag_container_template"
+description: "A Full-Stack RAG Container Template"
+baseurl: "/rag_container_template"
 url: "https://europanite.github.io"
 theme: minima
 markdown: kramdown

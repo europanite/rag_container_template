@@ -3,7 +3,7 @@ import { View, Text, TextInput, Button } from "react-native";
 import { useAuth } from "../context/Auth";
 import { useNavigation } from "@react-navigation/native";
 
-const FORM_MAX_W = 480; // keep consistent with SignUp
+const FORM_MAX_W = 720; // keep consistent with SignUp
 
 export default function SignInScreen() {
   const { signIn } = useAuth();

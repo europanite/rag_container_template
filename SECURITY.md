@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-The following table shows which versions of `standard_react_fastapi_environment` are currently being supported with security updates.
+The following table shows which versions of `rag_container_template` are currently being supported with security updates.
 
 | Version | Supported          |
 |---------|--------------------|
@@ -35,4 +35,4 @@ If you discover a security vulnerability within this project, please help us kee
 
 ## Acknowledgements
 
-We deeply appreciate the efforts of security researchers and contributors who help us improve the security of `standard_react_fastapi_environment`.
+We deeply appreciate the efforts of security researchers and contributors who help us improve the security of `rag_container_template`.

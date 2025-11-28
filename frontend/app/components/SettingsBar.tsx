@@ -1,8 +1,3 @@
-// Settings bar: match SignIn/SignUp layout (centered column, maxWidth=480).
-// - Bar spans full width with gray background.
-// - Inner content is centered and width-limited to 480px (same as forms).
-// - Status + buttons are grouped without stretching to edges.
-
 import React from "react";
 import { View, Text, TouchableOpacity, useWindowDimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -11,14 +6,14 @@ import { useAuth } from "../context/Auth";
 import { useNavigation } from "@react-navigation/native";
 
 const BAR_BG = "#000000ff";
-const CONTENT_MAX_W = 480; // ← same as forms
+const CONTENT_MAX_W = 720;
 
 export default function SettingsBar() {
   const { user, signOut } = useAuth();
   const nav = useNavigation<any>();
   const { width } = useWindowDimensions();
-  const isNarrow = width < 420; // stack buttons below on very small widths
-  const NOT_SIGNED_COLOR = BAR_BG; 
+  const isNarrow = width < 420;
+  const NOT_SIGNED_COLOR = BAR_BG;
 
   const Btn = ({ title, onPress }: { title: string; onPress: () => void }) => (
     <TouchableOpacity
@@ -49,11 +44,11 @@ export default function SettingsBar() {
                 flexWrap: "wrap",
               }}
             >
-              <Text style={{ fontWeight: "700", color: "#ffffffff"  }}>
+              <Text style={{ fontWeight: "700", color: "#ffffffff" }}>
                 {user ? `${user.email}` : "Not signed in"}
               </Text>
 
-              <View style={{ flexDirection: "row", gap: 8 }}>
+              <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
                 {!user ? (
                   <>
                     <Btn title="Sign Up" onPress={() => nav.navigate("SignUp")} />

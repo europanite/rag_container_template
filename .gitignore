@@ -4,10 +4,9 @@ __pycache__/
 *.pyo
 *.pyd
 *.so
-*.egg
-*.egg-info/
-.eggs/
-*.log
+*$py.class
+
+# SQlite
 *.sqlite3
 db.sqlite3
 
@@ -16,6 +15,9 @@ db.sqlite3
 env/
 venv/
 ENV/
+.env
+.env.*
+!.env.example
 
 # Jupyter
 .ipynb_checkpoints/
@@ -36,10 +38,14 @@ build/
 Thumbs.db
 desktop.ini
 
-# IDE
+# Editor / IDE 
 .vscode/
 .idea/
 *.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
 
 # Docker
 *.pid
@@ -53,3 +59,47 @@ frontend/app/coverage/
 
 # Jest cache
 frontend/app/.jest-cache/
+
+# ---- Node / JS / React Native / Expo ----
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Expo / React Native build artifacts
+.expo/
+.expo-shared/
+web-build/
+dist/
+
+# Bare workflow
+android/
+ios/
+
+# Packaging
+*.egg-info/
+*.egg
+build/
+develop-eggs/
+.eggs/
+
+# Testing / coverage / type checking
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.mypy_cache/
+.dmypy.json
+.pyre/
+.pytype/
+
+# Logs
+*.log
+
+# ---- Local data / DB / vector store ----
+chroma_db/
+postgres-data/
+db-data/
+data/
+tmp/
