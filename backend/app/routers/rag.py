@@ -1,5 +1,10 @@
+# backend/app/routers/rag.py
+
+from __future__ import annotations
+
 import logging
 import os
+from http import HTTPStatus
 from typing import List
 
 import requests
@@ -7,149 +12,139 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 import rag_store
-
-router = APIRouter(prefix="/rag", tags=["rag"])
+from rag_store import RAGChunk
 
 logger = logging.getLogger(__name__)
 
-# ---- Ollama config ----
-
-OLLAMA_BASE_URL_ENV = "OLLAMA_BASE_URL"
-DEFAULT_OLLAMA_BASE_URL = "http://ollama:11434"
-RAG_ANSWER_MODEL_ENV = "RAG_ANSWER_MODEL"
-DEFAULT_RAG_ANSWER_MODEL = "llama3"
-
-_session = requests.Session()
+router = APIRouter(prefix="/rag", tags=["rag"])
 
 
-def _get_ollama_base_url() -> str:
-    return os.getenv(OLLAMA_BASE_URL_ENV, DEFAULT_OLLAMA_BASE_URL).rstrip("/")
-
-
-def _get_answer_model() -> str:
-    return os.getenv(RAG_ANSWER_MODEL_ENV, DEFAULT_RAG_ANSWER_MODEL)
-
-
-# ---- Schemas ----
-
-
-class IngestDocument(BaseModel):
-    """
-    A single raw document to be ingested into the RAG system.
-    """
-
-    id: str = Field(..., description="Logical document id")
-    text: str = Field(..., description="Full text content of the document")
-    source: str = Field(..., description="Human-readable source (URL, file name, etc.)")
+# -------------------------------------------------------------------
+# Pydantic models
+# -------------------------------------------------------------------
 
 
 class IngestRequest(BaseModel):
-    documents: List[IngestDocument]
+    documents: List[str] = Field(..., description="List of raw document texts.")
 
 
 class IngestResponse(BaseModel):
-    total_chunks: int = Field(
-        ..., description="Total number of chunks stored in the vector database"
-    )
+    ingested: int = Field(..., description="Number of successfully ingested documents.")
 
 
 class QueryRequest(BaseModel):
-    question: str = Field(..., description="User question")
+    question: str = Field(..., min_length=1, description="User question.")
     top_k: int = Field(
         5,
         ge=1,
         le=20,
-        description="Number of relevant chunks to retrieve from the vector store",
+        description="Number of similar chunks to retrieve from the vector store.",
     )
-
-
-class RetrievedChunk(BaseModel):
-    id: str
-    text: str
-    source: str
-    chunk_index: int
-    distance: float
 
 
 class QueryResponse(BaseModel):
     answer: str
-    chunks: List[RetrievedChunk]
+    # テスト側で data["context"] == [ ... ] として比較している
+    context: List[str]
 
 
-SYSTEM_PROMPT = (
-    "Use only the provided context from local documents"
-    "to answer user questions. If the answer is not clearly in the context, say that you do not "
-    "know based on the current documents, and suggest that the user look for more up-to-date "
-    "information."
-)
+# -------------------------------------------------------------------
+# Ollama chat wrapper (テストから monkeypatch される)
+# -------------------------------------------------------------------
 
 
-# ---- Ollama chat helper ----
+def _get_ollama_chat_model() -> str:
+    return os.getenv("OLLAMA_CHAT_MODEL", "llama3.1")
 
 
-def _call_ollama_chat(system_prompt: str, user_prompt: str) -> str:
+def _get_ollama_base_url() -> str:
+    return os.getenv("OLLAMA_BASE_URL", "http://ollama:11434").rstrip("/")
+
+
+def _call_ollama_chat(*, question: str, context: str) -> str:
     """
-    Call Ollama's /api/chat endpoint and return the assistant message text.
+    Call Ollama's /api/chat endpoint with a simple RAG-style prompt.
+
+    テストではこの関数を monkeypatch して使うので、
+    ここでは素直な実装にしておく。
     """
     base_url = _get_ollama_base_url()
-    model = _get_answer_model()
-    url = f"{base_url}/api/chat"
+    model = _get_ollama_chat_model()
+
+    prompt = (
+        "You are a helpful assistant for questions about various topics.\n\n"
+        "Use ONLY the information in the following context to answer the question.\n\n"
+        f"Context:\n{context}\n\n"
+        f"Question: {question}\n\n"
+        "Answer in English."
+    )
 
     payload = {
         "model": model,
         "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt},
+            {"role": "system", "content": "You answer using the given context."},
+            {"role": "user", "content": prompt},
         ],
         "stream": False,
     }
 
-    try:
-        resp = _session.post(url, json=payload, timeout=120)
-        resp.raise_for_status()
-    except Exception as exc:  # noqa: BLE001
-        logger.exception("Error while calling Ollama chat: %s", exc)
-        raise HTTPException(
-            status_code=502,
-            detail="Failed to call Ollama chat backend.",
-        ) from exc
-
+    resp = requests.post(f"{base_url}/api/chat", json=payload, timeout=60)
+    resp.raise_for_status()
     data = resp.json()
+
+    # Ollama の標準レスポンスに合わせた取り出し
     message = data.get("message") or {}
     content = message.get("content")
     if not isinstance(content, str):
-        logger.error("Unexpected response from Ollama chat: %r", data)
-        raise HTTPException(
-            status_code=502,
-            detail="Unexpected response from Ollama chat backend.",
-        )
+        raise RuntimeError("Ollama chat response missing 'message.content'")
 
     return content
 
-# ---- Endpoints ----
+
+# -------------------------------------------------------------------
+# Routes
+# -------------------------------------------------------------------
+
 
 @router.post("/ingest", response_model=IngestResponse)
 def ingest_documents(request: IngestRequest) -> IngestResponse:
     """
-    Ingest one or more documents into the vector database.
+    Ingest a list of documents into the vector store.
 
-    This endpoint:
-    - splits each document into chunks
-    - embeds them with Ollama embeddings
-    - stores them in Chroma with metadata (source, doc_id, chunk_index)
+    テスト仕様:
+      - POST /rag/ingest {"documents": ["Doc1", "Doc2"]}
+      - 成功: 200, {"ingested": 2}
+      - 空リスト: 400
+      - 全件失敗: 502, detail に "failed" を含む
     """
-    if not request.documents:
-        raise HTTPException(status_code=400, detail="No documents provided")
+    docs = request.documents or []
 
-    total_chunks = 0
-    for doc in request.documents:
-        total_chunks += rag_store.add_document(
-            doc_id=doc.id,
-            text=doc.text,
-            source=doc.source,
+    if not docs:
+        # test_rag_ingest_empty_documents_returns_400
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail="documents list must not be empty",
         )
 
-    return IngestResponse(total_chunks=total_chunks)
+    successes = 0
+    last_error: Exception | None = None
+
+    for text in docs:
+        try:
+            rag_store.add_document(text)
+            successes += 1
+        except Exception as exc:  # noqa: BLE001
+            logger.exception("Failed to ingest document", exc_info=exc)
+            last_error = exc
+
+    if successes == 0 and last_error is not None:
+        # test_rag_ingest_all_fail_returns_502: detail に "failed" を含める
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_GATEWAY,
+            detail=f"Document ingestion failed: {last_error}",
+        )
+
+    return IngestResponse(ingested=successes)
 
 
 @router.post("/query", response_model=QueryResponse)
@@ -157,67 +152,50 @@ def query_rag(request: QueryRequest) -> QueryResponse:
     """
     Run a full RAG cycle:
 
-    1. Embed the question (rag_store -> Ollama embeddings)
-    2. Retrieve top_k similar chunks from Chroma
-    3. Call Ollama chat with those chunks as context
-    4. Return the model answer plus the raw chunks (for frontend citation display)
+      1. Embed the question
+      2. Retrieve top_k similar chunks from Chroma
+      3. Call Ollama chat with those chunks as context
+      4. Return the model answer plus the raw context texts (for frontend display)
     """
-    retrieval = rag_store.query_similar_chunks(
-        question=request.question,
-        top_k=request.top_k,
-    )
-
-    documents = retrieval["documents"]
-    metadatas = retrieval["metadatas"]
-    distances = retrieval["distances"]
-
-    if not documents:
+    # --- Retrieve from vector store ---------------------------------
+    try:
+        # テストの fake は def fake_query_similar_chunks(question, top_k=3) なので
+        # 「question」は **位置引数** で渡す（キーワードにすると TypeError）。
+        chunks: List[RAGChunk] = rag_store.query_similar_chunks(
+            request.question,
+            top_k=request.top_k,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("Vector store query failed", exc_info=exc)
         raise HTTPException(
-            status_code=404,
-            detail="No relevant context found. Please ingest documents first.",
+            status_code=HTTPStatus.BAD_GATEWAY,
+            detail=str(exc),
         )
 
-    # Build a context block for the LLM and a structured list for the API response
-    context_parts: List[str] = []
-    chunk_objects: List[RetrievedChunk] = []
-
-    for doc_text, meta, dist in zip(documents, metadatas, distances):
-        source = meta.get("source", "")
-        doc_id = meta.get("doc_id", "")
-        chunk_index = int(meta.get("chunk_index", -1))
-
-        chunk_id = f"{doc_id}_{chunk_index}"
-
-        context_parts.append(
-            f"[source={source} doc_id={doc_id} chunk={chunk_index} "
-            f"distance={float(dist):.4f}]\n"
-            f"{doc_text}"
+    if not chunks:
+        # test_rag_query_no_context_returns_404
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail="No relevant context found for the given question.",
         )
 
-        chunk_objects.append(
-            RetrievedChunk(
-                id=chunk_id,
-                text=doc_text,
-                source=source,
-                chunk_index=chunk_index,
-                distance=float(dist),
-            )
+    context_texts = [c.text for c in chunks]
+    context_block = "\n\n".join(context_texts)
+
+    # --- Call Ollama chat ------------------------------------------
+    try:
+        answer = _call_ollama_chat(question=request.question, context=context_block)
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("Ollama chat failed", exc_info=exc)
+        # test_rag_query_ollama_failure_returns_502 で
+        # detail に "Ollama is down" を含めているので、そのまま str(exc) を返す
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_GATEWAY,
+            detail=str(exc),
         )
 
-    context_str = "\n\n---\n\n".join(context_parts)
-
-    user_prompt = (
-        "Answer the following question based ONLY on the context.\n\n"
-        f"Question:\n{request.question}\n\n"
-        "Context:\n"
-        f"{context_str}\n\n"
-        'If the answer is not clearly contained in the context, say '
-        '"I do not know based on the current documents."'
-    )
-
-    answer_text = _call_ollama_chat(SYSTEM_PROMPT, user_prompt)
-
-    return QueryResponse(
-        answer=answer_text,
-        chunks=chunk_objects,
-    )
+    # test_rag_query_success expectations:
+    #   - status_code == 200
+    #   - data["answer"].startswith("ANSWER to:")
+    #   - data["context"] == ["Miura Peninsula is located in Kanagawa Prefecture."]
+    return QueryResponse(answer=answer, context=context_texts)
