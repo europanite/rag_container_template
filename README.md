@@ -1,6 +1,6 @@
 # [RAG Container Template](https://github.com/europanite/rag_container_template "RAG Container Template")
 
-!["UI"](./assets/images/frontdnd.png)
+!["UI"](./assets/images/frontend.png)
 
 This repository is a full-stack sandbox for building a **local Retrieval-Augmented Generation (RAG)** system.  
 The backend is a FastAPI service with authentication and a RAG API, using **ChromaDB** as a persistent vector store and **Ollama** for both embeddings and chat. The frontend is an Expo / React Native app that talks to the backend.
