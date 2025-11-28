@@ -4,7 +4,7 @@ from database import engine
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from models import Base
-from routers import auth, items
+from routers import auth, rag
 from sqlalchemy import text
 
 
@@ -32,5 +32,5 @@ def health():
     return {"status": "ok", "db": ok}
 
 
-app.include_router(items.router)
 app.include_router(auth.router)
+app.include_router(rag.router)
