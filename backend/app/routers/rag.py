@@ -83,7 +83,8 @@ def _call_ollama_chat(*, question: str, context: str) -> str:
         "stream": False,
     }
 
-    resp = requests.post(f"{base_url}/api/chat", json=payload, timeout=60)
+    # Use the module-level session so tests can monkeypatch `_session`.
+    resp = _session.post(f"{base_url}/api/chat", json=payload, timeout=60)
     resp.raise_for_status()
     data = resp.json()
 
