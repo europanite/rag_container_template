@@ -148,7 +148,7 @@ def query_rag(request: QueryRequest) -> QueryResponse:
     """
     # --- Retrieve from vector store ---------------------------------
     try:
-        chunks: List[RAGChunk] = rag_store.query_similar_chunks(
+        chunks: list[RAGChunk] = rag_store.query_similar_chunks(
             request.question,
             top_k=request.top_k,
         )
