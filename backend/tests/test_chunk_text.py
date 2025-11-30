@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from rag_store import chunk_text, DocumentChunk
-
+from rag_store import DocumentChunk, chunk_text
 
 EXPECTED_CHUNK_COUNT = 3
 

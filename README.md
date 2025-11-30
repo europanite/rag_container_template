@@ -1,6 +1,7 @@
 # [RAG Container Template](https://github.com/europanite/rag_container_template "RAG Container Template")
 
 [![CI](https://github.com/europanite/rag_container_template/actions/workflows/ci.yml/badge.svg)](https://github.com/europanite/rag_container_template/actions/workflows/ci.yml)
+[![Python Lint](https://github.com/europanite/rag_container_template/actions/workflows/lint.yml/badge.svg)](https://github.com/europanite/rag_container_template/actions/workflows/lint.yml)
 [![CodeQL Advanced](https://github.com/europanite/rag_container_template/actions/workflows/codeql.yml/badge.svg)](https://github.com/europanite/rag_container_template/actions/workflows/codeql.yml)
 [![pages-build-deployment](https://github.com/europanite/rag_container_template/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/europanite/rag_container_template/actions/workflows/pages/pages-build-deployment)
 
@@ -98,7 +99,6 @@ docker compose \
   --rm \
   --entrypoint /bin/sh backend_test \
   -lc '
-  cd /root && \
   ruff check /app /tests
   '
 

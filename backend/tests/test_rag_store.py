@@ -3,8 +3,8 @@ from __future__ import annotations
 from typing import Any
 
 import pytest
-
 import rag_store
+
 
 class DummyCollection:
     """Very small in-memory stand-in for the Chroma collection."""
