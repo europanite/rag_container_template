@@ -1,14 +1,9 @@
-from __future__ import annotations
-
 import logging
 import os
 import uuid
-from collections.abc import Sequence
-from typing import Any
 
 import chromadb
 import requests
-
 
 logger = logging.getLogger(__name__)
 
