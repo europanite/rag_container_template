@@ -1,14 +1,13 @@
 from __future__ import annotations
 
-from http import HTTPStatus
 import logging
 import os
+from http import HTTPStatus
 
+import rag_store
 import requests
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
-
-import rag_store
 from rag_store import RAGChunk
 
 logger = logging.getLogger(__name__)

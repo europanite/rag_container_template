@@ -2,12 +2,11 @@ from __future__ import annotations
 
 from http import HTTPStatus
 
-from fastapi.testclient import TestClient
 import pytest
-
 import rag_store
-from rag_store import RAGChunk
 import routers.rag as rag_router
+from fastapi.testclient import TestClient
+from rag_store import RAGChunk
 
 
 def test_rag_ingest_success(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:

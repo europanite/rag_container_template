@@ -98,7 +98,6 @@ docker compose \
   --rm \
   --entrypoint /bin/sh backend_test \
   -lc '
-  cd /root && \
   ruff check /app /tests
   '
 
