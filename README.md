@@ -93,10 +93,14 @@ docker compose \
   --entrypoint /bin/sh backend_test \
   -lc ' pytest -q '
 
-docker compose -f docker-compose.test.yml run --rm \
-  --entrypoint /bin/sh backend_test -lc '
-    cd /app && ruff check . --fix
-'
+docker compose \
+  -f docker-compose.test.yml run \
+  --rm \
+  --entrypoint /bin/sh backend_test \
+  -lc '
+  cd /root && \
+  ruff check /app /tests
+  '
 
 # Frontend Test
 docker compose \
