@@ -46,7 +46,7 @@ def test_call_ollama_chat_uses_session_and_parses_content(
         def __init__(self, payload: dict[str, Any]) -> None:
             self._payload = payload
 
-        def raise_for_status(self) -> None:  # noqa: D401
+        def raise_for_status(self) -> None:
             return None
 
         def json(self) -> dict[str, Any]:

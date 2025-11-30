@@ -97,15 +97,16 @@ def _get_chroma_client():
       * The path is taken from CHROMA_DB_DIR (or default).
       * The same instance is returned when called twice.
     """
-    global _client
 
     if _client is not None:
         return _client
 
     db_dir = _get_chroma_db_dir()
-    logger.info("Creating Chroma PersistentClient at %s", db_dir)
-    _client = chromadb.PersistentClient(path=db_dir)
-    return _client
+    logger.info("Creating Chroma client at %s", db_dir)
+    client = chromadb.PersistentClient(path=db_dir)
+    # keep module-level cache without using `global`
+    globals()["_client"] = client
+    return client
 
 
 def _get_collection():
@@ -115,16 +116,16 @@ def _get_collection():
     Tests monkeypatch `_collection` directly, so if `_collection` is not
     None we just give it back and do NOT create a new one.
     """
-    global _collection
-
     if _collection is not None:
         return _collection
 
     client = _get_chroma_client()
     name = _get_chroma_collection_name()
     logger.info("Getting/creating Chroma collection %s", name)
-    _collection = client.get_or_create_collection(name)
-    return _collection
+    collection = client.get_or_create_collection(name=name)
+    # store on module without `global`
+    globals()["_collection"] = collection
+    return collection
 
 
 # -------------------------------------------------------------------
@@ -375,20 +376,21 @@ def query_similar_chunks(question, top_k=3):
     metas = metas_lists[0] if metas_lists else []
     dists = dists_lists[0] if dists_lists else []
 
-    chunks = []
-    for doc, meta, dist in zip(docs, metas, dists):
-        if not isinstance(meta, dict):
+    chunks: list[RAGChunk] = []
+    for doc, raw_meta, dist in zip(docs, metas, dists, strict=False):
+        if isinstance(raw_meta, dict):
+            normalized_meta = raw_meta
+        elif raw_meta is None:
+            normalized_meta = {}
+        else:
             # Normalize strange metadata formats used in some backends.
-            if meta is None:
-                meta = {}
-            else:
-                meta = {"value": meta}
+            normalized_meta = {"value": raw_meta}
 
         chunks.append(
             RAGChunk(
                 text=doc,
-                distance=float(dist),
-                metadata=meta,
+                distance=dist,
+                metadata=normalized_meta,
             )
         )
 

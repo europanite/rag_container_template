@@ -1,6 +1,9 @@
 from __future__ import annotations
+
 from typing import Any
+
 import pytest
+
 import rag_store
 
 class DummyCollection:
@@ -19,7 +22,9 @@ class DummyCollection:
         metadatas: list[dict[str, Any]],
         ids: list[str],
     ) -> None:
-        for emb, doc, meta, _id in zip(embeddings, documents, metadatas, ids):
+        for emb, doc, meta, _id in zip(
+            embeddings, documents, metadatas, ids, strict=False
+        ):
             self.records.append(
                 {
                     "id": _id,
@@ -96,9 +101,11 @@ def test_query_similar_chunks_returns_rag_chunks(monkeypatch: pytest.MonkeyPatch
 
     monkeypatch.setattr(rag_store, "embed_texts", fake_embed_texts)
 
-    chunks = rag_store.query_similar_chunks("Tell me about Yokosuka", top_k=2)
+    EXPECTED_TOP_K = 2
 
-    assert len(chunks) == 2
+    chunks = rag_store.query_similar_chunks("Tell me about Yokosuka", top_k=EXPECTED_TOP_K)
+
+    assert len(chunks) == EXPECTED_TOP_K
     c0 = chunks[0]
     assert hasattr(c0, "text")
     assert hasattr(c0, "distance")

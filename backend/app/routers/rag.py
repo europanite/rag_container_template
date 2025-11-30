@@ -3,7 +3,6 @@ from __future__ import annotations
 import logging
 import os
 from http import HTTPStatus
-from typing import List
 
 import requests
 from fastapi import APIRouter, HTTPException
@@ -25,8 +24,9 @@ router = APIRouter(prefix="/rag", tags=["rag"])
 
 
 class IngestRequest(BaseModel):
-    documents: List[str] = Field(..., description="List of raw document texts.")
-
+    documents: list[str] = Field(
+        ..., description="List of raw document texts."
+    )
 
 class IngestResponse(BaseModel):
     ingested: int = Field(..., description="Number of successfully ingested documents.")
@@ -44,7 +44,7 @@ class QueryRequest(BaseModel):
 
 class QueryResponse(BaseModel):
     answer: str
-    context: List[str]
+    context: list[str]
 
 
 # -------------------------------------------------------------------
@@ -119,10 +119,11 @@ def ingest_documents(request: IngestRequest) -> IngestResponse:
     last_error: Exception | None = None
 
     for text in docs:
+
         try:
             rag_store.add_document(text)
             successes += 1
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.exception("Failed to ingest document", exc_info=exc)
             last_error = exc
 
@@ -147,11 +148,11 @@ def query_rag(request: QueryRequest) -> QueryResponse:
     """
     # --- Retrieve from vector store ---------------------------------
     try:
-        chunks: List[RAGChunk] = rag_store.query_similar_chunks(
+        chunks: list[RAGChunk] = rag_store.query_similar_chunks(
             request.question,
             top_k=request.top_k,
         )
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.exception("Vector store query failed", exc_info=exc)
         raise HTTPException(
             status_code=HTTPStatus.BAD_GATEWAY,
@@ -171,7 +172,7 @@ def query_rag(request: QueryRequest) -> QueryResponse:
     # --- Call Ollama chat ------------------------------------------
     try:
         answer = _call_ollama_chat(question=request.question, context=context_block)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.exception("Ollama chat failed", exc_info=exc)
         # test_rag_query_ollama_failure_returns_502
         raise HTTPException(
