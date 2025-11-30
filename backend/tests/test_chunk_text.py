@@ -1,7 +1,9 @@
 from __future__ import annotations
 
-from rag_store import DocumentChunk, chunk_text
+from rag_store import chunk_text, DocumentChunk
 
+
+EXPECTED_CHUNK_COUNT = 3
 
 def test_chunk_text_splits_long_text_and_sets_metadata() -> None:
     words = [f"word{i}" for i in range(25)]
@@ -9,7 +11,7 @@ def test_chunk_text_splits_long_text_and_sets_metadata() -> None:
 
     chunks = chunk_text(text, max_tokens=10)
 
-    assert len(chunks) == 3
+    assert len(chunks) == EXPECTED_CHUNK_COUNT
 
     for idx, chunk in enumerate(chunks):
         assert isinstance(chunk, DocumentChunk)

@@ -1,6 +1,3 @@
-# backend/tests/test_rag_store_config.py
-
-import os
 import rag_store
 
 
