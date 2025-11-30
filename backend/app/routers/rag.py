@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from http import HTTPStatus
 import logging
 import os
-from http import HTTPStatus
 
 import requests
 from fastapi import APIRouter, HTTPException
@@ -148,16 +148,16 @@ def query_rag(request: QueryRequest) -> QueryResponse:
     """
     # --- Retrieve from vector store ---------------------------------
     try:
-        chunks: list[RAGChunk] = rag_store.query_similar_chunks(
+        chunks: List[RAGChunk] = rag_store.query_similar_chunks(
             request.question,
             top_k=request.top_k,
         )
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.exception("Vector store query failed", exc_info=exc)
         raise HTTPException(
             status_code=HTTPStatus.BAD_GATEWAY,
             detail=str(exc),
-        )
+        ) from exc
 
     if not chunks:
         # test_rag_query_no_context_returns_404
@@ -171,14 +171,17 @@ def query_rag(request: QueryRequest) -> QueryResponse:
 
     # --- Call Ollama chat ------------------------------------------
     try:
-        answer = _call_ollama_chat(question=request.question, context=context_block)
-    except Exception as exc:
+        answer = _call_ollama_chat(
+            question=request.question,
+            context=context_block,
+        )
+    except Exception as exc:  # noqa: BLE001
         logger.exception("Ollama chat failed", exc_info=exc)
         # test_rag_query_ollama_failure_returns_502
         raise HTTPException(
             status_code=HTTPStatus.BAD_GATEWAY,
             detail=str(exc),
-        )
+        ) from exc
 
     # test_rag_query_success expectations:
     #   - status_code == 200

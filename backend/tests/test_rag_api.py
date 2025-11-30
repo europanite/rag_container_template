@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from http import HTTPStatus
 
-import pytest
 from fastapi.testclient import TestClient
+import pytest
 
 import rag_store
 from rag_store import RAGChunk
