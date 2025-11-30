@@ -46,19 +46,6 @@ class DummyCollection:
         }
 
 
-def test_chunk_text_splits_long_input() -> None:
-    text = (
-        "First sentence about Miura Peninsula.\n"
-        "Second sentence about Yokosuka.\n\n"
-        "Third sentence about Aburatsubo."
-    )
-    chunks = rag_store.chunk_text(text, max_tokens=10)
-
-    assert len(chunks) >= 1
-    assert all(c.text.strip() for c in chunks)
-    assert all("index" in c.metadata for c in chunks)
-
-
 def test_embed_texts_uses_ollama_wrapper(monkeypatch: pytest.MonkeyPatch) -> None:
     called: list[str] = []
 

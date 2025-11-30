@@ -83,6 +83,22 @@ docker compose up
 ```
 ---
 
+### 3. Test:
+
+```bash
+# Backend Test
+docker compose \
+  -f docker-compose.test.yml run \
+  --rm \
+  --entrypoint /bin/sh backend_test \
+  -lc ' pytest -q '
+
+# Frontend Test
+docker compose \
+  -f docker-compose.test.yml run \
+  --rm frontend_test
+```
+
 ## Visit the services:
 
 - Backend API: http://localhost:8000/docs

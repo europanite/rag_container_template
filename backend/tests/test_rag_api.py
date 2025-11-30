@@ -1,5 +1,3 @@
-# backend/tests/test_rag_api.py
-
 from __future__ import annotations
 
 from http import HTTPStatus
@@ -10,7 +8,7 @@ from fastapi.testclient import TestClient
 
 import rag_store
 from rag_store import RAGChunk
-import routers.rag as rag_router  # /rag/query の内部関数をpatchする用
+import routers.rag as rag_router
 
 
 def test_rag_ingest_success(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -53,7 +51,6 @@ def test_rag_ingest_all_fail_returns_502(
 def test_rag_query_success(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # ベクター検索結果を差し替え
     def fake_query_similar_chunks(question: str, top_k: int = 3) -> list[RAGChunk]:
         return [
             RAGChunk(
@@ -65,7 +62,6 @@ def test_rag_query_success(
 
     monkeypatch.setattr(rag_store, "query_similar_chunks", fake_query_similar_chunks)
 
-    # Ollamaチャット呼び出しもダミーに
     def fake_call_ollama_chat(*, question: str, context: str) -> str:
         assert "Miura Peninsula" in context
         return f"ANSWER to: {question}"
