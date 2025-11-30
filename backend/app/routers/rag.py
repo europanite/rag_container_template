@@ -152,7 +152,7 @@ def query_rag(request: QueryRequest) -> QueryResponse:
             request.question,
             top_k=request.top_k,
         )
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.exception("Vector store query failed", exc_info=exc)
         raise HTTPException(
             status_code=HTTPStatus.BAD_GATEWAY,
@@ -175,7 +175,7 @@ def query_rag(request: QueryRequest) -> QueryResponse:
             question=request.question,
             context=context_block,
         )
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.exception("Ollama chat failed", exc_info=exc)
         # test_rag_query_ollama_failure_returns_502
         raise HTTPException(
