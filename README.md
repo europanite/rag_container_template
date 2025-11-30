@@ -73,7 +73,7 @@ The backend is a FastAPI service with authentication and a RAG API, using **Chro
 
 ```bash
 # set environment variables:
-export REACT_NATIVE_PACKAGER_HOSTNAME=${YOUR_HOST}
+export REACT_NATIVE_PACKAGER_HOSTNAME=192.168.3.6
 
 # Build the image
 docker compose build
@@ -92,6 +92,11 @@ docker compose \
   --rm \
   --entrypoint /bin/sh backend_test \
   -lc ' pytest -q '
+
+docker compose -f docker-compose.test.yml run --rm \
+  --entrypoint /bin/sh backend_test -lc '
+    cd /app && ruff check . --fix
+'
 
 # Frontend Test
 docker compose \
