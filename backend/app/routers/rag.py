@@ -1,11 +1,8 @@
-# backend/app/routers/rag.py
-
 from __future__ import annotations
 
 import logging
 import os
 from http import HTTPStatus
-from typing import List
 
 import requests
 from fastapi import APIRouter, HTTPException
@@ -15,6 +12,8 @@ import rag_store
 from rag_store import RAGChunk
 
 logger = logging.getLogger(__name__)
+
+_session = requests.Session()
 
 router = APIRouter(prefix="/rag", tags=["rag"])
 
@@ -44,12 +43,11 @@ class QueryRequest(BaseModel):
 
 class QueryResponse(BaseModel):
     answer: str
-    # テスト側で data["context"] == [ ... ] として比較している
     context: List[str]
 
 
 # -------------------------------------------------------------------
-# Ollama chat wrapper (テストから monkeypatch される)
+# Ollama chat wrapper
 # -------------------------------------------------------------------
 
 
@@ -64,9 +62,6 @@ def _get_ollama_base_url() -> str:
 def _call_ollama_chat(*, question: str, context: str) -> str:
     """
     Call Ollama's /api/chat endpoint with a simple RAG-style prompt.
-
-    テストではこの関数を monkeypatch して使うので、
-    ここでは素直な実装にしておく。
     """
     base_url = _get_ollama_base_url()
     model = _get_ollama_chat_model()
@@ -92,7 +87,6 @@ def _call_ollama_chat(*, question: str, context: str) -> str:
     resp.raise_for_status()
     data = resp.json()
 
-    # Ollama の標準レスポンスに合わせた取り出し
     message = data.get("message") or {}
     content = message.get("content")
     if not isinstance(content, str):
@@ -110,12 +104,6 @@ def _call_ollama_chat(*, question: str, context: str) -> str:
 def ingest_documents(request: IngestRequest) -> IngestResponse:
     """
     Ingest a list of documents into the vector store.
-
-    テスト仕様:
-      - POST /rag/ingest {"documents": ["Doc1", "Doc2"]}
-      - 成功: 200, {"ingested": 2}
-      - 空リスト: 400
-      - 全件失敗: 502, detail に "failed" を含む
     """
     docs = request.documents or []
 
@@ -138,7 +126,6 @@ def ingest_documents(request: IngestRequest) -> IngestResponse:
             last_error = exc
 
     if successes == 0 and last_error is not None:
-        # test_rag_ingest_all_fail_returns_502: detail に "failed" を含める
         raise HTTPException(
             status_code=HTTPStatus.BAD_GATEWAY,
             detail=f"Document ingestion failed: {last_error}",
@@ -159,8 +146,6 @@ def query_rag(request: QueryRequest) -> QueryResponse:
     """
     # --- Retrieve from vector store ---------------------------------
     try:
-        # テストの fake は def fake_query_similar_chunks(question, top_k=3) なので
-        # 「question」は **位置引数** で渡す（キーワードにすると TypeError）。
         chunks: List[RAGChunk] = rag_store.query_similar_chunks(
             request.question,
             top_k=request.top_k,
@@ -187,8 +172,7 @@ def query_rag(request: QueryRequest) -> QueryResponse:
         answer = _call_ollama_chat(question=request.question, context=context_block)
     except Exception as exc:  # noqa: BLE001
         logger.exception("Ollama chat failed", exc_info=exc)
-        # test_rag_query_ollama_failure_returns_502 で
-        # detail に "Ollama is down" を含めているので、そのまま str(exc) を返す
+        # test_rag_query_ollama_failure_returns_502
         raise HTTPException(
             status_code=HTTPStatus.BAD_GATEWAY,
             detail=str(exc),
