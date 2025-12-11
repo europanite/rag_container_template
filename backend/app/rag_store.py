@@ -190,18 +190,26 @@ def chunk_text(text, max_tokens=200):
 # Embeddings (Ollama)
 # -------------------------------------------------------------------
 
-
 def _embed_with_ollama(text):
     """
-    Call Ollama's /api/embeddings endpoint for a single text.
+    Call Ollama's /api/embed endpoint for a single text.
 
-    Expected response format (typical):
+    It supports multiple possible response formats:
+
+    New (Ollama /api/embed):
 
         {
-          "embedding": [... floats ...]
+          "model": "...",
+          "embeddings": [[...], ...]
         }
 
-    or sometimes:
+    Older custom / other providers:
+
+        {
+          "embedding": [...]
+        }
+
+    Or:
 
         {
           "data": [{ "embedding": [...], ... }]
@@ -215,54 +223,67 @@ def _embed_with_ollama(text):
         "input": text,
     }
 
-    url = base_url + "/api/embeddings"
+    url = base_url + "/api/embed"
     logger.debug("Requesting embedding from %s with model=%s", url, model)
 
     response = requests.post(url, json=payload, timeout=30)
     response.raise_for_status()
     data = response.json()
 
-    if isinstance(data, dict) and "embedding" in data:
+    embedding = None
+
+    if isinstance(data, dict) and "embeddings" in data:
+        embs = data["embeddings"]
+        if isinstance(embs, list) and embs:
+            embedding = embs[0]
+
+    elif isinstance(data, dict) and "embedding" in data:
         embedding = data["embedding"]
+
     elif isinstance(data, dict) and "data" in data:
         first = data["data"][0]
         embedding = first["embedding"]
-    else:
-        raise ValueError("Unexpected embedding response format")
+
+    if embedding is None:
+        raise ValueError(f"Unexpected embedding response format: keys={list(data.keys())}")
 
     if not isinstance(embedding, list):
         raise ValueError("Embedding must be a list of floats")
 
     return embedding
 
-
-def embed_texts(texts):
-    """
-    Compute embeddings for a batch of texts using Ollama.
-
-    Tests expect:
-      * [] when texts is empty or all whitespace.
-      * For each non-empty cleaned text, `_embed_with_ollama` is called once.
-      * If `_embed_with_ollama` raises, the error is logged and that text
-        is simply skipped (remaining ones are still processed).
-    """
+def embed_texts(texts: list[str]) -> list[list[float]]:
     if not texts:
         return []
 
-    embeddings = []
-
+    cleaned_texts = []
     for t in texts:
-        cleaned = (t or "").strip()
-        if not cleaned:
+        if not t:
             continue
+        stripped = t.strip()
+        if not stripped:
+            continue
+        cleaned_texts.append(stripped)
 
+    if not cleaned_texts:
+        return []
+
+    embeddings: list[list[float]] = []
+    errors: list[Exception] = []
+
+    for t in cleaned_texts:
         try:
-            emb = _embed_with_ollama(cleaned)
-        except Exception as exc:  # pragma: no cover (logging branch)
-            logger.exception("Embedding failed", exc_info=exc)
-            continue
+            emb = _embed_with_ollama(t)
+            embeddings.append(emb)
+        except Exception as exc:  # requests.HTTPError
+            logger.exception("Embedding failed for text chunk", exc_info=exc)
+            errors.append(exc)
 
-        embeddings.append(emb)
+    if not embeddings:
+        raise RuntimeError(
+            f"Failed to embed any of the {len(cleaned_texts)} text chunks; "
+            f"last error: {errors[-1] if errors else 'unknown'}"
+        )
 
     return embeddings
 
@@ -271,56 +292,34 @@ def embed_texts(texts):
 # Ingestion
 # -------------------------------------------------------------------
 
-
-def add_document(text):
-    """
-    Ingest a raw text document into the Chroma vector store.
-
-    Steps:
-      1. Normalize / strip the text.
-      2. Split into chunks via `chunk_text`.
-      3. Embed each chunk via `embed_texts`.
-      4. Store in Chroma with generated IDs.
-
-    Tests expect:
-      * Whitespace-only text is ignored (no errors).
-      * Each record inserted into the DummyCollection contains both
-        "document" and "metadata" keys.
-      * `metadata["chunk_index"]` is present for each chunk.
-    """
-    cleaned = (text or "").strip()
-    if not cleaned:
-        logger.info("add_document called with empty/whitespace text; nothing to do.")
-        return
-
-    chunks = chunk_text(cleaned)
+def add_document(text: str) -> None:
+    """Split text into chunks, embed them, and store in Chroma."""
+    chunks = chunk_text(text, max_tokens=200)
     if not chunks:
-        logger.warning("chunk_text returned no chunks; nothing to add.")
+        logger.warning("No chunks produced from text; nothing to add.")
         return
 
     documents = [c.text for c in chunks]
-    metadatas = []
-    ids = []
-
-    for i, chunk in enumerate(chunks):
-        meta = dict(chunk.metadata or {})
-        meta.setdefault("chunk_index", i)
-        metadatas.append(meta)
-        ids.append("rag-doc-" + uuid.uuid4().hex)
+    metadatas = [c.metadata for c in chunks]
+    ids = [str(uuid.uuid4()) for _ in chunks]
 
     embeddings = embed_texts(documents)
+
     if not embeddings:
-        logger.warning("No embeddings produced; skipping Chroma insertion.")
-        return
+        raise RuntimeError("No embeddings produced; document not stored.")
+
+    if len(embeddings) != len(documents):
+        raise ValueError(
+            f"Embedding count mismatch: {len(embeddings)} vs {len(documents)}"
+        )
 
     collection = _get_collection()
     collection.add(
-        embeddings=embeddings,
         documents=documents,
+        embeddings=embeddings,
         metadatas=metadatas,
         ids=ids,
     )
-
 
 # -------------------------------------------------------------------
 # Retrieval

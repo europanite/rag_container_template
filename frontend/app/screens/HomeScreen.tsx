@@ -52,13 +52,7 @@ export default function HomeScreen() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          documents: [
-            {
-              id: `doc-${Date.now()}`,
-              source: docSource || "manual",
-              text: docText,
-            },
-          ],
+          documents: [docText],
         }),
       });
 
@@ -67,8 +61,8 @@ export default function HomeScreen() {
         throw new Error(`Ingest failed: ${res.status} ${body}`);
       }
 
-      const data = await res.json();
-      setIngestStatus(`Ingested. Total chunks stored: ${data.total_chunks}`);
+      const data = await res.json(); // { ingested: number }
+      setIngestStatus(`Ingested documents: ${data.ingested}`);
     } catch (e: any) {
       console.error(e);
       setError(e.message ?? String(e));
