@@ -162,6 +162,7 @@ def chunk_text(text, max_tokens=200):
                     chunk_text_value,
                     {
                         "chunk_index": chunk_index,
+                        "index": chunk_index,
                     },
                 )
             )
@@ -175,6 +176,7 @@ def chunk_text(text, max_tokens=200):
                 chunk_text_value,
                 {
                     # tests expect "index" in c.metadata
+                    "chunk_index": chunk_index,
                     "index": chunk_index,
                 },
             )
