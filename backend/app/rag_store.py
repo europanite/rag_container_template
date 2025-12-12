@@ -1,10 +1,10 @@
 import logging
 import os
+import re
 import uuid
 
 import chromadb
 import requests
-import re
 
 logger = logging.getLogger(__name__)
 
@@ -135,7 +135,7 @@ def _get_collection():
 
 _DEFAULT_CHUNK_SIZE=256
 
-JP_SENT_SPLIT = re.compile(r"(?<=[。！？])")
+JP_SENT_SPLIT = re.compile(r"(?<=[。！？])")  # noqa: RUF001
 CJK_RE = re.compile(r"[\u3040-\u30ff\u4e00-\u9fff]")
 
 def chunk_text(text: str, max_tokens: int = _DEFAULT_CHUNK_SIZE) -> list[DocumentChunk]:
