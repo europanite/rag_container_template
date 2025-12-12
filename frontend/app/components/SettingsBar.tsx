@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TouchableOpacity, useWindowDimensions } from "react-native";
+import { View, Text, TouchableOpacity, useWindowDimensions, Linking } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { useAuth } from "../context/Auth";
@@ -40,15 +40,28 @@ export default function SettingsBar() {
               style={{
                 flexDirection: isNarrow ? "column" : "row",
                 alignItems: "center",
+                justifyContent: "space-between",
                 gap: 8,
                 flexWrap: "wrap",
               }}
             >
-              <Text style={{ fontWeight: "700", color: "#ffffffff" }}>
-                {user ? `${user.email}` : "Not signed in"}
-              </Text>
+              <View style={{ flexShrink: 1, gap: 2 }}>
+                <Text
+                  style={{
+                    color: "#e5e7eb",
+                    fontSize: 32,
+                    textDecorationLine: "underline",
+                  }}
+                  onPress={() => Linking.openURL(REPO_URL)}
+                >
+                  RAG Container Template
+                </Text>
+              </View>
 
               <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
+                <Text style={{ fontWeight: "700", color: "#ffffffff" }}>
+                  {user ? `${user.email}` : "Not signed in"}
+                </Text>
                 {!user ? (
                   <>
                     <Btn title="Sign Up" onPress={() => nav.navigate("SignUp")} />
