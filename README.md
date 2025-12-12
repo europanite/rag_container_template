@@ -87,13 +87,14 @@ docker compose up
 ### 3. Test:
 
 ```bash
-# Backend Test
+# Backend pytest
 docker compose \
   -f docker-compose.test.yml run \
   --rm \
   --entrypoint /bin/sh backend_test \
   -lc ' pytest -q '
 
+# Backend Lint
 docker compose \
   -f docker-compose.test.yml run \
   --rm \
