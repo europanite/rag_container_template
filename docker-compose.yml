@@ -34,6 +34,8 @@ services:
       DB_PASS: ${DB_PASS}
       BACKEND_PORT: ${BACKEND_PORT}
       OLLAMA_BASE_URL: http://ollama:11434
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL}
+      OLLAMA_CHAT_MODEL: ${RAG_ANSWER_MODEL}
     volumes:
       - ./backend/app:/app
     command: uvicorn main:app --host 0.0.0.0 --port ${BACKEND_PORT} --reload
