@@ -30,6 +30,8 @@ export default function SettingsBar() {
     </TouchableOpacity>
   );
 
+  const REPO_URL = "https://github.com/europanite/rag_container_template";
+
   return (
     <SafeAreaView edges={["top"]} style={{ backgroundColor: BAR_BG }}>
       <StatusBar style="dark" backgroundColor={BAR_BG} />
