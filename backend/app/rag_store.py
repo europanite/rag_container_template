@@ -4,6 +4,7 @@ import uuid
 
 import chromadb
 import requests
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -132,59 +133,86 @@ def _get_collection():
 # Chunking
 # -------------------------------------------------------------------
 
+_DEFAULT_CHUNK_SIZE=256
 
-def chunk_text(text, max_tokens=200):
-    """
-    Naively split text into smaller chunks of up to `max_tokens` words.
+JP_SENT_SPLIT = re.compile(r"(?<=[。！？])")
+CJK_RE = re.compile(r"[\u3040-\u30ff\u4e00-\u9fff]")
 
-    * Splits on whitespace.
-    * Returns a list of DocumentChunk.
-    * Each chunk.metadata contains:
-        - "index": index in the list (0-based)
-        - "total_chunks": total number of chunks
-    """
+def chunk_text(text: str, max_tokens: int = _DEFAULT_CHUNK_SIZE) -> list[DocumentChunk]:
     if not text:
         return []
 
-    words = text.split()
-    if not words:
-        return []
+    has_cjk = CJK_RE.search(text) is not None
 
-    chunks = []
-    current = []
-    for word in words:
-        current.append(word)
-        if len(current) >= max_tokens:
+    chunks: list[DocumentChunk] = []
+
+    if has_cjk:
+        sentences = [s for s in JP_SENT_SPLIT.split(text) if s.strip()]
+        current: list[str] = []
+        length = 0
+
+        for s in sentences:
+            s_len = len(s)
+            if length + s_len > max_tokens and current:
+                chunk_index = len(chunks)
+                chunk_text_value = "".join(current)
+                chunks.append(
+                    DocumentChunk(
+                        chunk_text_value,
+                        {"chunk_index": chunk_index, "index": chunk_index},
+                    )
+                )
+                current = []
+                length = 0
+
+            current.append(s)
+            length += s_len
+
+        if current:
+            chunk_index = len(chunks)
+            chunk_text_value = "".join(current)
+            chunks.append(
+                DocumentChunk(
+                    chunk_text_value,
+                    {"chunk_index": chunk_index, "index": chunk_index},
+                )
+            )
+
+    else:
+        words = text.split()
+        current: list[str] = []
+        count = 0
+
+        for w in words:
+            if count >= max_tokens and current:
+                chunk_index = len(chunks)
+                chunk_text_value = " ".join(current)
+                chunks.append(
+                    DocumentChunk(
+                        chunk_text_value,
+                        {"chunk_index": chunk_index, "index": chunk_index},
+                    )
+                )
+                current = []
+                count = 0
+
+            current.append(w)
+            count += 1
+
+        if current:
             chunk_index = len(chunks)
             chunk_text_value = " ".join(current)
             chunks.append(
                 DocumentChunk(
                     chunk_text_value,
-                    {
-                        "chunk_index": chunk_index,
-                        "index": chunk_index,
-                    },
+                    {"chunk_index": chunk_index, "index": chunk_index},
                 )
             )
-            current = []
-
-    if current:
-        chunk_index = len(chunks)
-        chunk_text_value = " ".join(current)
-        chunks.append(
-            DocumentChunk(
-                chunk_text_value,
-                {
-                    # tests expect "index" in c.metadata
-                    "chunk_index": chunk_index,
-                    "index": chunk_index,
-                },
-            )
-        )
 
     total = len(chunks)
     for c in chunks:
         c.metadata.setdefault("total_chunks", total)
+
     return chunks
 
 
