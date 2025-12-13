@@ -25,6 +25,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      ollama:
+        condition: service_healthy
     environment:
       DATABASE_URL: ${DATABASE_URL}
       DB_HOST: ${DB_HOST}
@@ -82,8 +84,8 @@ services:
     entrypoint: ["/bin/bash", "-c", "\
       ollama serve & \
       sleep 5 && \
-      ollama pull mxbai-embed-large && \
-      ollama pull llama3 && \
+      ollama pull ${EMBEDDING_MODEL} && \
+      ollama pull ${OLLAMA_CHAT_MODEL} && \
       wait"]
 volumes:
   db_data:
