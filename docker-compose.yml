@@ -72,7 +72,7 @@ services:
       "
     restart: unless-stopped
   ollama:
-    image: ollama/ollama
+    image: ollama/ollama:0.13.4-rc1-rocm
     container_name: ollama
     ports:
       - "11434:11434"
@@ -82,8 +82,8 @@ services:
     entrypoint: ["/bin/bash", "-c", "\
       ollama serve & \
       sleep 5 && \
-      ollama pull mxbai-embed-large && \
-      ollama pull llama3 && \
+      ollama pull ${EMBEDDING_MODEL} && \
+      ollama pull ${OLLAMA_CHAT_MODEL} && \
       wait"]
 volumes:
   db_data:
