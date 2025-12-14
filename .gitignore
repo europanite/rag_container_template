@@ -94,6 +94,13 @@ htmlcov/
 .pyre/
 .pytype/
 
+# coverage reports (backend & frontend)
+coverage/
+backend/reports
+frontend/reports
+backend/app/coverage/
+frontend/app/coverage/
+
 # Logs
 *.log
 
