@@ -8,6 +8,9 @@
 [![CodeQL Advanced](https://github.com/europanite/rag_container_template/actions/workflows/codeql.yml/badge.svg)](https://github.com/europanite/rag_container_template/actions/workflows/codeql.yml)
 [![pages-build-deployment](https://github.com/europanite/rag_container_template/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/europanite/rag_container_template/actions/workflows/pages/pages-build-deployment)
 
+![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
+![Pytest](https://img.shields.io/badge/pytest-%23ffffff.svg?style=for-the-badge&logo=pytest&logoColor=2f9fe3)
+![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
 ![React Native](https://img.shields.io/badge/react_native-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
 ![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)
 ![Jest](https://img.shields.io/badge/-jest-%23C21325?style=for-the-badge&logo=jest&logoColor=white)
