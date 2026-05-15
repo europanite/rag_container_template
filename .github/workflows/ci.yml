@@ -13,9 +13,9 @@ jobs:
       contents: read
       actions: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Build backend test image
         run: |
@@ -35,7 +35,7 @@ jobs:
         run: |
           docker save local/backend-test:ci | gzip > backend-test.tar.gz
           docker save local/frontend-test:ci | gzip > frontend-test.tar.gz
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: test-images
           path: |
@@ -49,8 +49,8 @@ jobs:
       actions: write
     needs: build-test-images
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v6
         with:
           name: test-images
       - name: Load images
@@ -62,7 +62,7 @@ jobs:
               python -m coverage run -m pytest -q
             '
       - name: Upload coverage xml
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: coverage-xml
           path: backend/reports/ci/coverage.xml
@@ -75,8 +75,8 @@ jobs:
       actions: write
     needs: build-test-images
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v6
         with:
           name: test-images
       - name: Load images
