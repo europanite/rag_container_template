@@ -1,8 +1,8 @@
 ---
 layout: page
-title: "🇺🇸 English"
-permalink: /
-lang: en
+title: "🇰🇷 한국어"
+permalink: /ko/
+lang: ko
 ---
 
 <p align="center">
@@ -16,6 +16,8 @@ lang: en
   <a href="https://europanite.github.io/rag_container_template/de/">🇩🇪 Deutsch</a> |
   <a href="https://europanite.github.io/rag_container_template/fr/">🇫🇷 Français</a>
 </p>
+
+> **Note:** 이 문서는 번역본입니다. 영어 `README.md`가 기준 문서입니다.
 
 # [RAG Container Template](https://github.com/europanite/rag_container_template "RAG Container Template")
 
@@ -37,8 +39,8 @@ lang: en
 
 !["UI"](./assets/images/frontend.png)
 
-This repository is a full-stack sandbox for building a **local Retrieval-Augmented Generation (RAG)** system.  
-The backend is a FastAPI service with authentication and a RAG API, using **ChromaDB** as a persistent vector store and **Ollama** for both embeddings and chat. The frontend is an Expo / React Native app that talks to the backend.
+이 저장소는 **로컬 Retrieval-Augmented Generation (RAG)** 시스템을 구축하기 위한 풀스택 샌드박스입니다.  
+백엔드는 인증과 RAG API를 제공하는 FastAPI 서비스이며, 영구 벡터 저장소로 **ChromaDB**를 사용하고 임베딩과 채팅 모두에 **Ollama**를 사용합니다. 프론트엔드는 백엔드와 통신하는 Expo / React Native 앱입니다.
 
 ---
 
@@ -54,8 +56,8 @@ The backend is a FastAPI service with authentication and a RAG API, using **Chro
   - PostgreSQL
 
 - **RAG (Retrieval-Augmented Generation)**
-  - **Embeddings** with Ollama
-  - **Vector store** with ChromaDB
+  - Ollama를 사용한 **Embeddings**
+  - ChromaDB를 사용한 **Vector store**
   - **Chat / Answer generation** 
 
 - **DevOps**
@@ -143,7 +145,7 @@ docker compose \
 !["backend"](./assets/images/backend.png)
 
 - Frontend UI (WEB): http://localhost:8081
-- Frontend UI (mobile): exp://${YOUR_HOST}:8081: access it with the QR provided by Expo.
+- Frontend UI (mobile): exp://${YOUR_HOST}:8081: Expo에서 제공하는 QR로 접속합니다.
 !["expo"](./assets/images/expo.png)
 
 ---
