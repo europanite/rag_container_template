@@ -1,8 +1,8 @@
 ---
 layout: page
-title: "🇺🇸 English"
-permalink: /
-lang: en
+title: "🇧🇷 Português (Brasil)"
+permalink: /pt-BR/
+lang: pt-BR
 ---
 
 <p align="center">
@@ -16,6 +16,8 @@ lang: en
   <a href="https://europanite.github.io/rag_container_template/de/">🇩🇪 Deutsch</a> |
   <a href="https://europanite.github.io/rag_container_template/fr/">🇫🇷 Français</a>
 </p>
+
+> **Note:** Esta é uma versão traduzida. O `README.md` em inglês é a fonte oficial.
 
 # [RAG Container Template](https://github.com/europanite/rag_container_template "RAG Container Template")
 
@@ -37,8 +39,8 @@ lang: en
 
 !["UI"](./assets/images/frontend.png)
 
-This repository is a full-stack sandbox for building a **local Retrieval-Augmented Generation (RAG)** system.  
-The backend is a FastAPI service with authentication and a RAG API, using **ChromaDB** as a persistent vector store and **Ollama** for both embeddings and chat. The frontend is an Expo / React Native app that talks to the backend.
+Este repositório é um sandbox full-stack para criar um sistema **local de Retrieval-Augmented Generation (RAG)**.  
+O backend é um serviço FastAPI com autenticação e uma API RAG, usando **ChromaDB** como armazenamento vetorial persistente e **Ollama** tanto para embeddings quanto para chat. O frontend é um app Expo / React Native que se comunica com o backend.
 
 ---
 
@@ -54,8 +56,8 @@ The backend is a FastAPI service with authentication and a RAG API, using **Chro
   - PostgreSQL
 
 - **RAG (Retrieval-Augmented Generation)**
-  - **Embeddings** with Ollama
-  - **Vector store** with ChromaDB
+  - **Embeddings** com Ollama
+  - **Vector store** com ChromaDB
   - **Chat / Answer generation** 
 
 - **DevOps**
@@ -143,7 +145,7 @@ docker compose \
 !["backend"](./assets/images/backend.png)
 
 - Frontend UI (WEB): http://localhost:8081
-- Frontend UI (mobile): exp://${YOUR_HOST}:8081: access it with the QR provided by Expo.
+- Frontend UI (mobile): exp://${YOUR_HOST}:8081: acesse usando o QR fornecido pelo Expo.
 !["expo"](./assets/images/expo.png)
 
 ---
